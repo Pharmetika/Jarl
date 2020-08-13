@@ -17,7 +17,7 @@ type OnRetryFunction func(error)
 
 type Retry struct {
 	fn         RetryFunction
-	RetryFn    OnRetryFunction
+	retryFn    OnRetryFunction
 	maxRetries int
 	count      int
 	delay      time.Duration
@@ -33,12 +33,16 @@ func NewRetry(fn RetryFunction, maxRetries int, delay time.Duration) *Retry {
 	}
 }
 
+func (r *Retry) RetryFunc(fn OnRetryFunction) {
+	r.retryFn = fn
+}
+
 func (r *Retry) Run() error {
 	for {
 		err := r.fn()
 		if err != nil {
-			if r.RetryFn != nil {
-				r.RetryFn(err)
+			if r.retryFn != nil {
+				r.retryFn(err)
 			}
 
 			if r.maxRetries > 0 && r.count < maxErrors {
